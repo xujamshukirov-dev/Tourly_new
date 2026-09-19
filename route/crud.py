@@ -1,8 +1,10 @@
 import httpx
+import math
 
 OSRM_URL = "http://router.project-osrm.org/route/v1/driving"
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+
 
 async def get_route(start_lat: float, start_lng: float, end_lat: float, end_lng: float) -> dict:
     """OSRM orqali marshrut olish"""
@@ -29,8 +31,18 @@ async def get_route(start_lat: float, start_lng: float, end_lat: float, end_lng:
     }
 
 
-def _build_bbox(coords: list[dict], padding: float = 0.02) -> tuple[float, float, float, float]:
-    """Marshrut atrofidagi qidiruv maydonini (bounding box) hisoblash"""
+def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """Ikki koordinata orasidagi masofa (km)."""
+    R = 6371
+    la1, lo1 = math.radians(lat1), math.radians(lng1)
+    la2, lo2 = math.radians(lat2), math.radians(lng2)
+    dlat, dlng = la2 - la1, lo2 - lo1
+    h = math.sin(dlat / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin(dlng / 2) ** 2
+    return 2 * R * math.asin(math.sqrt(h))
+
+
+def _build_bbox(coords: list[dict], padding: float = 0.05) -> tuple[float, float, float, float]:
+    """Marshrut atrofidagi qidiruv maydonini (bounding box) hisoblash."""
     lats = [c["lat"] for c in coords]
     lngs = [c["lng"] for c in coords]
     return (
@@ -42,28 +54,18 @@ def _build_bbox(coords: list[dict], padding: float = 0.02) -> tuple[float, float
 
 
 def _sample_route_points(coords: list[dict], interval_km: float = 10) -> list[dict]:
-    """
-    Marshrut bo'ylab har `interval_km` kilometrda bitta nuqta tanlaydi.
-    Yo'l qancha uzun bo'lishidan qat'i nazar, qamrov "teshiksiz" bo'ladi.
-    """
+    """Marshrut bo'ylab har `interval_km` kilometrda bitta nuqta tanlaydi."""
     if len(coords) <= 2:
         return coords
-
-    import math
-
-    def haversine_km(a: dict, b: dict) -> float:
-        R = 6371
-        lat1, lng1 = math.radians(a["lat"]), math.radians(a["lng"])
-        lat2, lng2 = math.radians(b["lat"]), math.radians(b["lng"])
-        dlat, dlng = lat2 - lat1, lng2 - lng1
-        h = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlng / 2) ** 2
-        return 2 * R * math.asin(math.sqrt(h))
 
     selected = [coords[0]]
     accumulated = 0.0
 
     for i in range(1, len(coords)):
-        accumulated += haversine_km(coords[i - 1], coords[i])
+        accumulated += _haversine_km(
+            coords[i - 1]["lat"], coords[i - 1]["lng"],
+            coords[i]["lat"], coords[i]["lng"],
+        )
         if accumulated >= interval_km:
             selected.append(coords[i])
             accumulated = 0.0
@@ -73,35 +75,43 @@ def _sample_route_points(coords: list[dict], interval_km: float = 10) -> list[di
 
     return selected
 
-
-async def get_pois_along_route(coords: list[dict], poi_type: str, radius: int = 6000) -> list[dict]:
+async def get_pois_along_route(coords: list[dict], poi_type: str) -> list[dict]:
     """
-    Butun marshrut bo'ylab (har 10 km'da bir nuqta, radius 6 km) yoqilg'i
-    yoki oshxonalarni topadi — uzoq yo'lda ham "teshik" qolmasligi uchun.
+    Uzun yo'lni ~50 km'lik segmentlarga bo'lib, har biriga alohida
+    (kichik) bbox bilan Overpass so'rovi yuboradi — Overpass juda katta
+    bbox'ni (masalan butun mamlakat) 406 bilan rad etadi, shuning uchun
+    bo'lib-bo'lib so'raymiz. Keyin har 10 km segmentdan eng yaqin 1 tasini olamiz.
     """
     if poi_type == "fuel":
-        tag = 'node["amenity"="fuel"]'
+        tag_query = 'node["amenity"="fuel"]'
     else:  # food
-        tag = 'node["amenity"~"restaurant|cafe|fast_food"]'
+        tag_query = 'node["amenity"~"restaurant|cafe|fast_food"]'
 
-    sample_points = _sample_route_points(coords, interval_km=10)
-
-    # Overpass'ga bitta katta so'rov o'rniga guruhlab yuboramiz (uzoq yo'lda
-    # nuqta soni ko'p bo'lsa, bitta so'rov juda og'ir bo'lib qolmasin)
-    all_results = {}
-    batch_size = 25
+    # Yo'lni ~50 km'lik bo'laklarga bo'lamiz, har biriga alohida so'rov
+    chunk_points = _sample_route_points(coords, interval_km=50)
+    all_elements = []
+    seen_element_ids = set()
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        for i in range(0, len(sample_points), batch_size):
-            batch = sample_points[i:i + batch_size]
-            blocks = "".join(
-                f'{tag}(around:{radius},{p["lat"]},{p["lng"]});'
-                for p in batch
-            )
-            query = f"[out:json][timeout:25];({blocks});out body;"
+        for i in range(len(chunk_points) - 1):
+            chunk_coords = [chunk_points[i], chunk_points[i + 1]]
+            south, west, north, east = _build_bbox(chunk_coords, padding=0.1)
+
+            query = f"""
+            [out:json][timeout:25];
+            {tag_query}({south},{west},{north},{east});
+            out body;
+            """
 
             try:
-                response = await client.post(OVERPASS_URL, data={"data": query})
+                response = await client.post(
+                    OVERPASS_URL,
+                    data={"data": query},
+                    headers={
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "User-Agent": "TourlyApp/1.0",
+                    },
+                )
             except httpx.HTTPError:
                 continue
 
@@ -109,17 +119,49 @@ async def get_pois_along_route(coords: list[dict], poi_type: str, radius: int = 
                 continue
 
             for el in response.json().get("elements", []):
-                if el["id"] in all_results:
+                if el["id"] in seen_element_ids:
                     continue
-                tags = el.get("tags", {})
-                all_results[el["id"]] = {
-                    "name": tags.get("name", "Nomsiz"),
-                    "type": poi_type,
-                    "lat": el["lat"],
-                    "lng": el["lon"],
-                }
+                seen_element_ids.add(el["id"])
+                all_elements.append(el)
 
-    return list(all_results.values())
+    if not all_elements:
+        return []
+
+    # ---- Har 10 km segmentdan eng yaqin 1 tasini tanlaymiz ----
+    sample_points = _sample_route_points(coords, interval_km=10)
+
+    results = []
+    seen_ids = set()
+
+    for point in sample_points:
+        closest = None
+        closest_dist = None
+
+        for el in all_elements:
+            if "lat" not in el or "lon" not in el:
+                continue
+            if el["id"] in seen_ids:
+                continue
+
+            dist = _haversine_km(point["lat"], point["lng"], el["lat"], el["lon"])
+            if dist > 8:
+                continue
+
+            if closest is None or dist < closest_dist:
+                closest = el
+                closest_dist = dist
+
+        if closest is not None:
+            seen_ids.add(closest["id"])
+            tags = closest.get("tags", {})
+            results.append({
+                "name": tags.get("name", "Nomsiz"),
+                "type": poi_type,
+                "lat": closest["lat"],
+                "lng": closest["lon"],
+            })
+
+    return results
 
 
 # ==================== YAQIN-ATROFDA (nuqta atrofida qidirish) ====================
@@ -152,7 +194,14 @@ async def get_nearby_pois(lat: float, lng: float, radius: int, types: list[str])
             query = f"[out:json][timeout:25];({body});out body;"
 
             try:
-                response = await client.post(OVERPASS_URL, data={"data": query})
+                response = await client.post(
+                    OVERPASS_URL,
+                    data={"data": query},
+                    headers={
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "User-Agent": "TourlyApp/1.0",
+                    },
+                )
             except httpx.HTTPError:
                 continue
 
@@ -171,6 +220,7 @@ async def get_nearby_pois(lat: float, lng: float, radius: int, types: list[str])
                 })
 
     return results
+
 
 # ==================== GEOCODING (manzil -> koordinata) ====================
 
