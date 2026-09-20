@@ -10,6 +10,10 @@ from fastapi import Request
 from sqlalchemy import select as _select
 from core.database import get_db
 from users.models import User
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
+
+
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-gmda0p+ifg@-otc$&9977(n6e@fu^31&^-1$^302%w(ld-s4ob")
 ALGORITHM = "HS256"
@@ -88,3 +92,33 @@ async def get_current_user_optional(
     user_id = payload.get("sub")
     result = await db.execute(_select(User).where(User.id == int(user_id)))
     return result.scalar_one_or_none()
+
+
+
+GOOGLE_CLIENT_ID = "270246511610-eip51h62s69a0c5ghin641kjp7h1k3ci.apps.googleusercontent.com"
+
+
+def verify_google_token(token: str) -> dict:
+    """
+    Google ID tokenini HAQIQATAN Google serverida tekshiradi.
+    Token soxta yoki muddati o'tgan bo'lsa, xato tashlaydi (aylanib o'tib bo'lmaydi).
+    Muvaffaqiyatli bo'lsa, foydalanuvchi ma'lumotini (email, ism) qaytaradi.
+    """
+    try:
+        idinfo = google_id_token.verify_oauth2_token(
+            token, google_requests.Request(), GOOGLE_CLIENT_ID
+        )
+    except ValueError:
+        raise ValueError("Google token noto'g'ri yoki muddati o'tgan")
+
+    if not idinfo.get("email"):
+        raise ValueError("Google akkauntda email topilmadi")
+
+    if not idinfo.get("email_verified", False):
+        raise ValueError("Google email tasdiqlanmagan")
+
+    return {
+        "email": idinfo["email"],
+        "first_name": idinfo.get("given_name", ""),
+        "last_name": idinfo.get("family_name", ""),
+    }

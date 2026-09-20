@@ -48,3 +48,14 @@ class TokenResponse(BaseModel):
 
 class RefreshRequest(BaseModel):
     refresh_token: str
+
+class GoogleAuthRequest(BaseModel):
+    token: str  # Google'dan kelgan ID token
+
+
+class CompleteProfileRequest(BaseModel):
+    username: str
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+    bio: str | None = None

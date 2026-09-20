@@ -7,7 +7,7 @@ from core.security import (
     create_access_token,
     create_refresh_token,
     get_current_user,
-    decode_token,
+    decode_token, verify_google_token,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -105,3 +105,44 @@ async def read_user_profile(
         following_count=following_count,
         is_following=is_following,
     )
+
+@router.post("/google-auth", response_model=schemas.TokenResponse)
+async def google_auth(data: schemas.GoogleAuthRequest, db: AsyncSession = Depends(get_db)):
+    """
+    HAQIQIY Google login — token Google serverida tekshiriladi.
+    Soxta yoki bo'sh email bilan aylanib o'tib bo'lmaydi.
+    """
+    try:
+        google_info = verify_google_token(data.token)
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+    user = await crud.get_or_create_google_user(
+        db, google_info["email"], google_info["first_name"], google_info["last_name"]
+    )
+
+    return schemas.TokenResponse(
+        access_token=create_access_token(user.id),
+        refresh_token=create_refresh_token(user.id),
+    )
+
+
+@router.post("/complete-profile", response_model=schemas.UserRead)
+async def complete_profile_endpoint(
+    data: schemas.CompleteProfileRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Google orqali birinchi marta kirgan foydalanuvchi profilni to'ldiradi."""
+    try:
+        user = await crud.complete_profile(
+            db, current_user,
+            username=data.username,
+            first_name=data.first_name,
+            last_name=data.last_name,
+            phone=data.phone,
+            bio=data.bio,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return user

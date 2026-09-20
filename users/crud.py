@@ -108,3 +108,86 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
     if not user or not verify_password(password, user.hashed_password):
         return None
     return user
+
+async def get_or_create_by_email(db: AsyncSession, email: str, first_name: str = "", last_name: str = "") -> User:
+    """Google login uchun — email bo'yicha foydalanuvchini topadi, bo'lmasa yaratadi."""
+    user = await get_user_by_email(db, email)
+    if user:
+        return user
+
+    # Yangi foydalanuvchi — username hozircha email'ning boshi bilan, keyin complete-profile'da o'zgartiriladi
+    base_username = email.split("@")[0]
+    username = base_username
+    counter = 1
+    while await get_user_by_username(db, username):
+        username = f"{base_username}{counter}"
+        counter += 1
+
+    user = User(
+        username=username,
+        email=email,
+        hashed_password="",   # Google orqali kirgan, parol yo'q
+        first_name=first_name,
+        last_name=last_name,
+        is_verified=True,     # Google email tasdiqlangan hisoblanadi
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+async def get_or_create_google_user(db: AsyncSession, email: str, first_name: str, last_name: str) -> User:
+    """Google login uchun — email bo'yicha foydalanuvchini topadi, bo'lmasa yaratadi."""
+    user = await get_user_by_email(db, email)
+    if user:
+        return user
+
+    base_username = email.split("@")[0]
+    username = base_username
+    counter = 1
+    while await get_user_by_username(db, username):
+        username = f"{base_username}{counter}"
+        counter += 1
+
+    user = User(
+        username=username,
+        email=email,
+        hashed_password="",
+        first_name=first_name,
+        last_name=last_name,
+        is_verified=True,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+async def complete_profile(
+    db: AsyncSession,
+    user: User,
+    username: str,
+    first_name: str | None = None,
+    last_name: str | None = None,
+    phone: str | None = None,
+    bio: str | None = None,
+) -> User:
+    """Foydalanuvchi birinchi marta kirganda profilni to'ldiradi."""
+    existing = await get_user_by_username(db, username)
+    if existing and existing.id != user.id:
+        raise ValueError("Bu username band")
+
+    user.username = username
+    if first_name is not None:
+        user.first_name = first_name
+    if last_name is not None:
+        user.last_name = last_name
+    if phone is not None:
+        user.phone = phone
+    if bio is not None:
+        user.bio = bio
+    user.profile_completed = True
+
+    await db.commit()
+    await db.refresh(user)
+    return user
