@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: tourly_user
+      POSTGRES_PASSWORD: Tourly2026Strong
+      POSTGRES_DB: tourly_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+asyncpg://tourly_user:Tourly2026Strong@db:5432/tourly_db
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
