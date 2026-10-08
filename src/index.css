@@ -1,0 +1,151 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1F2937;
+    background-color: #eef6ee;
+    overflow-x: hidden;
+  }
+  body.font-theme-sans {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+  }
+  body.font-theme-serif {
+    font-family: 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif !important;
+  }
+  body.font-theme-mono {
+    font-family: 'JetBrains Mono', Menlo, Monaco, Consolas, 'Courier New', monospace !important;
+  }
+}
+
+/* Tourly form controls — brauzer default emas */
+.tourly-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid rgba(45, 106, 79, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  font-size: 0.875rem;
+  color: #1f2937;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.tourly-input:focus {
+  outline: none;
+  border-color: #2d6a4f;
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.15);
+}
+.tourly-input::placeholder {
+  color: #9ca3af;
+}
+.tourly-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%232d6a4f' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+}
+.tourly-mobile-bg {
+  background: #f1f6f1;
+}
+.tourly-header-dark {
+  background: linear-gradient(180deg, #15382e 0%, #1b453a 100%);
+}
+
+/* Glassmorphism Styles (Variant 3 - Bright Mediterranean / Coastal Summer) */
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 12px 36px -8px rgba(31, 41, 55, 0.08), 0 4px 12px -2px rgba(56, 176, 220, 0.06);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(56, 176, 220, 0.16), 0 8px 16px -4px rgba(31, 41, 55, 0.06);
+  border-color: rgba(56, 176, 220, 0.4);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+}
+
+.glass-modal {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Hide horizontal scrollbar but preserve scrollability */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom sleek scrollbar for modals and feeds */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 176, 220, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 176, 220, 0.6);
+}
+
+/* Leaflet Overrides */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 1.5rem;
+  z-index: 10;
+  font-family: inherit;
+}
+.leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  padding: 4px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+}
+.leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Animations */
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+.animate-pulse-subtle {
+  animation: pulseSubtle 3s infinite ease-in-out;
+}
