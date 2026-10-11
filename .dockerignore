@@ -1,0 +1,5 @@
+frontend/
+.venv/
+.git/
+.idea/
+db.sqlite3
