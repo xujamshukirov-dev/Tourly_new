@@ -123,7 +123,7 @@ async def delete_verification(
 # ==================== TUR (TOUR) ====================
 from menu.models import TourKompaniya, Tour
 
-tour_router = APIRouter(prefix="/tour", tags=["tour"])
+tour_router = APIRouter(prefix="/menu/tour", tags=["tour"])
 
 
 # ---- KOMPANIYA: ro'yxatdan o'tish (login talab) ----
@@ -206,5 +206,4 @@ async def get_tour(
     return schemas.TourRead.model_validate(obj)
 
 
-# umumiy routerga ulash
-router.include_router(tour_router)
+

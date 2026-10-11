@@ -1,10 +1,11 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
 from core.database import engine, Base
 from users.router import router as users_router
 from users import models as users_models
-from menu.router import router as menu_router
+from menu.router import router as menu_router, tour_router
 from menu import models as menu_models
 from posts.router import router as posts_router
 from posts import models as posts_models
@@ -17,6 +18,7 @@ from notifications import models as notifications_models
 from ai.router import router as ai_router
 from asosiy.router import router as asosiy_router
 from route.router import router as route_router
+from core.upload import router as upload_router, MEDIA_ROOT
 
 
 
@@ -30,6 +32,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Tourly API", lifespan=lifespan)
 
 app.include_router(users_router)
+app.include_router(tour_router)
 app.include_router(menu_router)
 app.include_router(posts_router)
 app.include_router(bookings_router)
@@ -38,6 +41,8 @@ app.include_router(notifications_router)
 app.include_router(ai_router)
 app.include_router(asosiy_router)
 app.include_router(route_router)
+app.include_router(upload_router)
+app.mount("/media", StaticFiles(directory=MEDIA_ROOT), name="media")
 
 
 @app.get("/")

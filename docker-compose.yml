@@ -20,6 +20,9 @@ services:
       DATABASE_URL: postgresql+asyncpg://tourly_user:Tourly2026Strong@db:5432/tourly_db
     ports:
       - "8000:8000"
+    volumes:
+      - media_data:/app/media
 
 volumes:
   postgres_data:
+  media_data:
