@@ -119,21 +119,36 @@ export default function App() {
       return;
     }
 
-    const targetId = typeof targetUserOrId === 'object' ? (targetUserOrId.id || targetUserOrId.name) : targetUserOrId;
+    const targetId = typeof targetUserOrId === 'object'
+      ? (targetUserOrId.id || targetUserOrId.authorId || targetUserOrId.name || targetUserOrId.author)
+      : targetUserOrId;
     if (!targetId) return;
 
-    const isCurrentlyFollowed = followedIds.includes(targetId);
+    const strTargetId = String(targetId);
+    const isCurrentlyFollowed = followedIds.some((id) => String(id) === strTargetId);
 
-    // Optimistic UI update
+    // Optimistic UI update - shu zahoti reaktiv yangilanish
     setFollowedIds((prev) =>
-      isCurrentlyFollowed ? prev.filter((id) => id !== targetId) : [...prev, targetId]
+      isCurrentlyFollowed
+        ? prev.filter((id) => String(id) !== strTargetId)
+        : [...prev, targetId]
     );
 
     setFollowersCounts((prev) => {
-      const current = prev[targetId] !== undefined ? prev[targetId] : (typeof targetUserOrId === 'object' && targetUserOrId.followersCount ? targetUserOrId.followersCount : 0);
+      const current = prev[targetId] !== undefined
+        ? prev[targetId]
+        : (prev[strTargetId] !== undefined
+            ? prev[strTargetId]
+            : (typeof targetUserOrId === 'object' && targetUserOrId.followersCount !== undefined
+                ? targetUserOrId.followersCount
+                : (typeof targetUserOrId === 'object' && targetUserOrId.followers_count !== undefined
+                    ? targetUserOrId.followers_count
+                    : (isCurrentlyFollowed ? 1 : 0))));
+      const nextCount = isCurrentlyFollowed ? Math.max(0, current - 1) : current + 1;
       return {
         ...prev,
-        [targetId]: isCurrentlyFollowed ? Math.max(0, current - 1) : current + 1,
+        [targetId]: nextCount,
+        [strTargetId]: nextCount,
       };
     });
 
@@ -306,8 +321,17 @@ export default function App() {
       setAuthMode('login');
       setIsAuthOpen(true);
     };
+    const handleAuthChange = (e) => {
+      if (e.detail) {
+        setUser(e.detail);
+      }
+    };
     window.addEventListener('tourly:session-expired', handleSessionExpired);
-    return () => window.removeEventListener('tourly:session-expired', handleSessionExpired);
+    window.addEventListener('tourly:auth-change', handleAuthChange);
+    return () => {
+      window.removeEventListener('tourly:session-expired', handleSessionExpired);
+      window.removeEventListener('tourly:auth-change', handleAuthChange);
+    };
   }, []);
 
 
@@ -789,7 +813,7 @@ export default function App() {
       />
 
       {/* 2. MAIN CONTENT VIEWS */}
-      <main className="flex-1 pb-24">
+      <main className="flex-1 pb-32">
         {/* VIEW A: HOME FEED */}
         {activeNav === 'home' && (
           <div className="space-y-4 animate-in fade-in duration-200">
@@ -1024,6 +1048,10 @@ export default function App() {
         onClose={() => setIsAuthOpen(false)}
         initialMode={authMode}
         onLoginSuccess={(u) => {
+          setUser(u);
+          setIsAuthOpen(false);
+        }}
+        onSuccess={(u) => {
           setUser(u);
           setIsAuthOpen(false);
         }}

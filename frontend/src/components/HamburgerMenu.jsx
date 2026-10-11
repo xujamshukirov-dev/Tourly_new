@@ -146,7 +146,7 @@ export default function HamburgerMenu({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex justify-start animate-in fade-in duration-200"
+      className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-md flex justify-start animate-in fade-in duration-200"
       onClick={onClose}
       role="presentation"
     >

@@ -31,20 +31,7 @@ export function getCurrentUser() {
   } catch {
     // ignore parse error
   }
-  // Default active user session: Tolibjon Shuhratov (User 4 in backend DB)
-  return {
-    id: 4,
-    firstName: 'Tolibjon',
-    lastName: 'Shuhratov',
-    name: 'Tolibjon Shuhratov',
-    username: 'aaa_471',
-    email: 'aaa@gmail.com',
-    phone: '+998 90 123 45 67',
-    bio: 'Tourly sayyohi',
-    avatar: null,
-    is_verified: false,
-    profile_completed: true,
-  };
+  return null;
 }
 
 export function setCurrentUser(user) {

@@ -152,7 +152,7 @@ export default function TourPackagesModal({
   const comparedTours = toursList.filter((t) => compareIds.includes(t.id));
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       <div
         className="w-full max-w-4xl bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/80 overflow-hidden my-auto animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
@@ -193,7 +193,7 @@ export default function TourPackagesModal({
         </div>
 
         {/* Content Body */}
-        <div className="p-4 sm:p-6 max-h-[75vh] overflow-y-auto space-y-5">
+        <div className="p-4 sm:p-6 max-h-[75vh] overflow-y-auto space-y-5 pb-6">
           {/* Create Form if toggled */}
           {showCreateForm && (
             <form onSubmit={handleCreateSubmit} className="glass-card rounded-2xl p-4 sm:p-5 space-y-3.5 border-2 border-emerald-500/30">

@@ -3,11 +3,12 @@ import { X, Mail, Lock, User, Phone, LogIn, UserPlus } from 'lucide-react';
 import { api, setStoredToken } from '../../services/api';
 import { setCurrentUser } from '../../utils/authStorage';
 
-export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'login' }) {
+export default function AuthModal({ isOpen, onClose, onSuccess, onLoginSuccess, initialMode = 'login' }) {
   const [mode, setMode] = useState(initialMode);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
+    username: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -33,15 +34,21 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
         if (!form.firstName.trim() || !form.lastName.trim()) {
           throw new Error('Ism va familiyani kiriting');
         }
-        const usernameBase = (form.email.split('@')[0] || form.firstName.toLowerCase()).replace(/[^a-zA-Z0-9_]/g, '');
-        const username = `${usernameBase}_${Math.floor(100 + Math.random() * 900)}`;
-        const regRes = await api.register(username, form.email.trim(), form.password);
+        // Foydalanuvchi kiritgan asl username yoki toza email/ism prefiksi (random sonlarsiz!)
+        const cleanUsername = form.username.trim() || 
+          (form.email.split('@')[0] || form.firstName).toLowerCase().replace(/[^a-zA-Z0-9_]/g, '');
+
+        if (!cleanUsername) {
+          throw new Error("Foydalanuvchi nomini (username) kiriting");
+        }
+
+        const regRes = await api.register(cleanUsername, form.email.trim(), form.password);
         if (regRes.access_token) {
           setStoredToken(regRes.access_token);
         }
         try {
           await api.completeProfile({
-            username,
+            username: cleanUsername,
             first_name: form.firstName.trim(),
             last_name: form.lastName.trim(),
             phone: form.phone.trim(),
@@ -55,13 +62,16 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
 
       const activeUser = {
         ...userData,
-        firstName: userData.first_name || form.firstName,
-        lastName: userData.last_name || form.lastName,
+        firstName: userData.first_name || form.firstName.trim(),
+        lastName: userData.last_name || form.lastName.trim(),
         name: `${userData.first_name || form.firstName} ${userData.last_name || form.lastName}`.trim(),
+        username: userData.username || form.username.trim() || form.email.split('@')[0],
       };
 
       setCurrentUser(activeUser);
+      onLoginSuccess?.(activeUser);
       onSuccess?.(activeUser);
+      window.dispatchEvent(new CustomEvent('tourly:auth-change', { detail: activeUser }));
       onClose();
     } catch (err) {
       console.error('Auth request failed:', err);
@@ -72,7 +82,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
       <div
         className="w-full max-w-md glass-modal rounded-3xl shadow-2xl border border-white/80 overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
@@ -95,31 +105,47 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
 
         <form onSubmit={handleSubmit} className="p-5 space-y-3">
           {mode === 'register' && (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs font-semibold text-gray-700">Ism *</label>
-                <div className="relative mt-1">
-                  <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-semibold text-gray-700">Ism *</label>
+                  <div className="relative mt-1">
+                    <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      required
+                      value={form.firstName}
+                      onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/90 border border-gray-200 text-sm focus:border-[#38B0DC] focus:outline-none"
+                      placeholder="Ism"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-700">Familiya *</label>
                   <input
                     required
-                    value={form.firstName}
-                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/90 border border-gray-200 text-sm focus:border-[#38B0DC] focus:outline-none"
-                    placeholder="Ism"
+                    value={form.lastName}
+                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                    className="w-full mt-1 px-3 py-2.5 rounded-xl bg-white/90 border border-gray-200 text-sm focus:border-[#38B0DC] focus:outline-none"
+                    placeholder="Familiya"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-700">Familiya *</label>
-                <input
-                  required
-                  value={form.lastName}
-                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                  className="w-full mt-1 px-3 py-2.5 rounded-xl bg-white/90 border border-gray-200 text-sm focus:border-[#38B0DC] focus:outline-none"
-                  placeholder="Familiya"
-                />
+                <label className="text-xs font-semibold text-gray-700">Foydalanuvchi nomi (Username) *</label>
+                <div className="relative mt-1">
+                  <span className="text-gray-400 font-bold absolute left-3 top-1/2 -translate-y-1/2 text-xs">@</span>
+                  <input
+                    type="text"
+                    required
+                    value={form.username}
+                    onChange={(e) => setForm({ ...form, username: e.target.value.replace(/[^a-zA-Z0-9_]/g, '') })}
+                    className="w-full pl-8 pr-3 py-2.5 rounded-xl bg-white/90 border border-gray-200 text-sm focus:border-[#38B0DC] focus:outline-none"
+                    placeholder="masalan: tolibjon"
+                  />
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           <div>

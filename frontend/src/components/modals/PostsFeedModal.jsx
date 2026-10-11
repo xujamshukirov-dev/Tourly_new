@@ -162,7 +162,7 @@ export default function PostsFeedModal({
 
     const currentLiked = !!likesState[postId]?.liked;
     const postItem = posts.find((p) => p.id === postId);
-    const defaultLikes = postItem?.likes || 45;
+    const defaultLikes = postItem?.likes ?? 0;
     const currentCount = likesState[postId]?.count !== undefined
       ? likesState[postId].count
       : defaultLikes;
@@ -266,7 +266,7 @@ export default function PostsFeedModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-40 bg-black flex flex-col justify-center items-center overflow-hidden animate-in fade-in duration-200">
       
       {/* Toast Alert */}
       {copiedToast && (
@@ -277,7 +277,7 @@ export default function PostsFeedModal({
       )}
 
       {/* Top Floating Header */}
-      <div className="fixed top-0 left-0 right-0 z-40 px-4 py-3 flex items-center justify-between pointer-events-none">
+      <div className="fixed top-0 left-0 right-0 z-30 px-4 py-3 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 pointer-events-auto">
           <div className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
           <span className="text-white text-xs font-bold tracking-wide">Tourly Feed</span>
@@ -308,7 +308,7 @@ export default function PostsFeedModal({
       </div>
 
       {/* Desktop Quick Nav Arrows */}
-      <div className="hidden lg:flex fixed right-8 top-1/2 -translate-y-1/2 z-40 flex-col gap-3">
+      <div className="hidden lg:flex fixed right-8 top-1/2 -translate-y-1/2 z-30 flex-col gap-3">
         <button
           onClick={() => scrollToIndex(Math.max(0, currentVisibleIndex - 1))}
           disabled={currentVisibleIndex === 0}
@@ -338,7 +338,7 @@ export default function PostsFeedModal({
       >
         {posts.map((post, idx) => {
           const isLiked = !!likesState[post.id]?.liked;
-          const defaultLikes = post.likes || 45;
+          const defaultLikes = post.likes ?? 0;
           const likesCount = likesState[post.id]?.count !== undefined
             ? likesState[post.id].count
             : defaultLikes;
@@ -498,22 +498,26 @@ export default function PostsFeedModal({
                     </div>
 
                     {/* Follow Button on Post */}
-                    {onToggleFollow && post.author && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleFollow(post.authorId || post.author);
-                        }}
-                        className={`px-3 py-1 rounded-full text-[10px] font-extrabold transition active:scale-95 shadow-md ${
-                          followedIds.includes(post.authorId || post.author)
-                            ? 'bg-white/25 text-white border border-white/40 backdrop-blur-xs'
-                            : 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                        }`}
-                      >
-                        {followedIds.includes(post.authorId || post.author) ? 'Obunadasiz' : '+ Obuna'}
-                      </button>
-                    )}
+                    {onToggleFollow && post.author && (() => {
+                      const followTarget = post.authorId || post.author;
+                      const isPostAuthorFollowed = followedIds.some((id) => String(id) === String(followTarget));
+                      return (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleFollow(followTarget);
+                          }}
+                          className={`px-3 py-1 rounded-full text-[10px] font-extrabold transition active:scale-95 shadow-md ${
+                            isPostAuthorFollowed
+                              ? 'bg-white/25 text-white border border-white/40 backdrop-blur-xs'
+                              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                          }`}
+                        >
+                          {isPostAuthorFollowed ? 'Obunadasiz' : '+ Obuna'}
+                        </button>
+                      );
+                    })()}
                   </div>
 
                   {/* Caption */}
@@ -545,7 +549,7 @@ export default function PostsFeedModal({
       {/* COMMENTS DRAWER MODAL */}
       {activeCommentsPostId && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
           onClick={() => setActiveCommentsPostId(null)}
         >
           <div
@@ -617,7 +621,7 @@ export default function PostsFeedModal({
       {/* SHARE TO USER MODAL */}
       {sharePost && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
           onClick={() => setSharePost(null)}
         >
           <div

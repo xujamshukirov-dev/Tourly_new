@@ -178,32 +178,32 @@ export default function ServiceRegistrationModal({
 
       if (serviceType === 'guide') {
         const payload = {
-          first_name: formData.firstName || 'Gid',
-          last_name: formData.lastName || "Yo'lboshchi",
-          email: formData.email,
-          phone: formData.phone || '',
-          passport_series: formData.passportSeries,
+          first_name: formData.firstName.trim() || 'Gid',
+          last_name: formData.lastName.trim() || "Yo'lboshchi",
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || '',
+          passport_series: formData.passportSeries.trim(),
           passport_image: passportFront || null,
           viloyat: formData.viloyat,
           tuman: formData.tuman,
-          language: formData.selectedLanguages.length > 0 ? formData.selectedLanguages.join(', ') : "O'zbekcha, Ruscha, Inglizcha",
-          bio: formData.description || "Professional gid yo'lboshchi",
+          language: formData.selectedLanguages.length > 0 ? formData.selectedLanguages.join(', ') : "O'zbek",
+          bio: formData.description?.trim() || "Professional gid yo'lboshchi",
           image: profilePhoto || passportFront || null,
         };
         result = await api.registerGuide(payload);
       } else if (serviceType === 'taxi') {
         const payload = {
-          first_name: formData.firstName || 'Haydovchi',
-          last_name: formData.lastName || 'Taksist',
-          email: formData.email,
-          phone: formData.phone || '',
-          passport_series: formData.passportSeries,
+          first_name: formData.firstName.trim() || 'Haydovchi',
+          last_name: formData.lastName.trim() || 'Taksist',
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || '',
+          passport_series: formData.passportSeries.trim(),
           passport_image: passportFront || null,
           viloyat: formData.viloyat,
           tuman: formData.tuman,
-          car_model: formData.carModel || 'Chevrolet Cobalt',
-          car_number: formData.licensePlate || '01 A 001 AA',
-          bio: formData.description || 'Qulay va xavfsiz qatnov',
+          car_model: formData.carModel.trim() || 'Chevrolet Cobalt',
+          car_number: formData.licensePlate.trim() || '01 A 001 AA',
+          bio: formData.description?.trim() || 'Qulay va xavfsiz qatnov',
           image: profilePhoto || passportFront || null,
         };
         result = await api.registerTaxi(payload);
@@ -321,9 +321,9 @@ export default function ServiceRegistrationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-5 overflow-y-auto">
+    <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       <div
-        className="w-full max-w-2xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[#2d6a4f]/15 overflow-hidden my-auto max-h-[92vh] flex flex-col"
+        className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden my-auto max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -369,7 +369,7 @@ export default function ServiceRegistrationModal({
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 pb-6">
             {/* Error banner */}
             {errorMessage && (
               <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2.5 animate-shake">
@@ -699,8 +699,8 @@ export default function ServiceRegistrationModal({
               />
             </div>
 
-            {/* Submit Action */}
-            <div className="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+            {/* Submit Action (Natural bottom placement, no fixed or sticky behavior) */}
+            <div className="pt-4 mt-2 border-t border-gray-100 flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={onClose}

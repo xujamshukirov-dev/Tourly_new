@@ -102,7 +102,7 @@ export default function MobileHomeFeed({
   onOpenChat,
 }) {
   return (
-    <div className="md:hidden px-4 py-3 space-y-6">
+    <div className="md:hidden px-4 py-3 pb-28 sm:pb-32 space-y-6">
 
       {/* 1. TAKSILAR VA HAYDOVCHILAR (Tasdiqlangan taksi haydovchilari va chat) */}
       <FeedSectionRow

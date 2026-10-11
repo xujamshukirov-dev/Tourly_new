@@ -32,11 +32,15 @@ export default function UserProfile({
   const isViewingOther = !!viewingUser;
   const activeProfile = isViewingOther ? viewingUser : user;
 
-  const targetId = viewingUser?.id || viewingUser?.name;
-  const isFollowing = targetId ? followedIds.includes(targetId) : false;
-  const targetFollowersCount = targetId && followersCounts[targetId] !== undefined
-    ? followersCounts[targetId]
-    : (viewingUser?.followersCount !== undefined ? viewingUser.followersCount : (isFollowing ? 1 : 0));
+  const targetId = viewingUser?.id || viewingUser?.authorId || viewingUser?.name;
+  const isFollowing = targetId ? followedIds.some((id) => String(id) === String(targetId)) : false;
+  const targetFollowersCount = targetId && (followersCounts[targetId] !== undefined || followersCounts[String(targetId)] !== undefined)
+    ? (followersCounts[targetId] !== undefined ? followersCounts[targetId] : followersCounts[String(targetId)])
+    : (viewingUser?.followersCount !== undefined
+        ? viewingUser.followersCount
+        : (viewingUser?.followers_count !== undefined
+            ? viewingUser.followers_count
+            : (isFollowing ? 1 : 0)));
 
   // Single unified "posts" tab — No separated Reels!
   const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'bookings' | 'favorites' | 'settings'
@@ -183,10 +187,14 @@ export default function UserProfile({
 
   const profileLocation = isViewingOther
     ? (viewingUser.viloyat || viewingUser.location || "O'zbekiston")
-    : "O'zbekiston";
+    : (user?.location || user?.viloyat || "O'zbekiston");
+
+  const profileUsername = isViewingOther
+    ? (viewingUser.username || null)
+    : (user?.username || null);
 
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 space-y-6">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 pb-32 sm:pb-36 space-y-6">
 
       {/* Back button if viewing another user's profile */}
       {isViewingOther && (
@@ -221,6 +229,12 @@ export default function UserProfile({
                   {profileRole}
                 </span>
               </div>
+
+              {profileUsername && (
+                <p className="text-xs font-semibold text-[#2E5A27] tracking-wide">
+                  @{profileUsername}
+                </p>
+              )}
 
               <div className="flex items-center justify-center sm:justify-start gap-3 text-xs text-gray-500">
                 <span className="flex items-center gap-1">
@@ -674,7 +688,7 @@ export default function UserProfile({
       {/* EDIT POST MODAL */}
       {editingPost && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
           onClick={() => setEditingPost(null)}
         >
           <div

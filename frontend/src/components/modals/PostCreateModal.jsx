@@ -82,7 +82,7 @@ export default function PostCreateModal({ isOpen, onClose, currentUser, onSubmit
 
       const formattedPost = {
         id: response.id || Date.now(),
-        author: `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || response.user?.username || currentUser?.username || 'Sayyoh',
+        author: currentUser?.username || response.user?.username || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'Sayyoh',
         authorId: currentUser?.id || response.user?.id,
         authorEmail: currentUser?.email,
         authorRole: "Sayyoh & Muallif",
@@ -91,8 +91,9 @@ export default function PostCreateModal({ isOpen, onClose, currentUser, onSubmit
         caption: response.caption || caption.trim(),
         image: response.media_type === 'image' ? response.media : (mediaType === 'image' ? finalMedia : null),
         videoUrl: response.media_type === 'video' ? response.media : (mediaType === 'video' ? finalMedia : null),
-        likes: response.likes_count || 0,
-        commentsCount: response.comments_count || 0,
+        likes: response.likes_count ?? 0,
+        commentsCount: response.comments_count ?? 0,
+        comments: [],
         timeAgo: 'Hozirgina',
         createdAt: response.created_at || new Date().toISOString(),
       };
@@ -116,7 +117,7 @@ export default function PostCreateModal({ isOpen, onClose, currentUser, onSubmit
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[70] bg-black/65 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-lg bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Modal Header */}

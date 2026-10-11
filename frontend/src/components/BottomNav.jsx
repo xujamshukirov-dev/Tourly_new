@@ -52,10 +52,10 @@ export default function BottomNav({
   return (
     <>
       {/* Spacer to prevent content from hiding under floating dock */}
-      <div className="pb-16 sm:pb-20">{/* spacer */}</div>
+      <div className="pb-24 sm:pb-28">{/* spacer */}</div>
 
-      {/* Floating glass nav dock — on both mobile and desktop, persistent over Reels (z-[70]) */}
-      <div className="fixed bottom-2.5 sm:bottom-3 left-0 right-0 z-[70] flex justify-center px-3 sm:px-4 pointer-events-none">
+      {/* Floating glass nav dock — persistent over Reels (z-40), modals sit on top at z-[70] */}
+      <div className="fixed bottom-2.5 sm:bottom-3 left-0 right-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
         <nav className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-2xl flex items-center gap-1 sm:gap-3 pointer-events-auto max-w-md w-full justify-around backdrop-blur-xl transition-all duration-300 ${
           isReelsOpen
             ? 'bg-black/75 border border-white/20 text-white shadow-black/50'

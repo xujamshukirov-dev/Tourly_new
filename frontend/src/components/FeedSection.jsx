@@ -35,7 +35,7 @@ export default function FeedSection({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-10">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 pb-28 sm:pb-32 space-y-10">
 
       {/* Category Navigation Pills */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
