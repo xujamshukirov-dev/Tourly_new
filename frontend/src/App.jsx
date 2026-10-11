@@ -70,17 +70,82 @@ export default function App() {
   const hotels = listingsStore.hotels || [];
   const guides = listingsStore.guides || [];
 
-  // Single unified Posts state (Images & Videos)
+  // Single unified Posts state (Images & Videos) - Tozalangan, faqat haqiqiy postlar
   const [posts, setPosts] = useState(() => {
     const saved = localStorage.getItem('tourly_posts');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((p) => p.id !== 301 && p.id !== 302 && p.id !== 303 && p.id !== 304);
+        }
+      } catch (e) { /* ignore */ }
     }
-    return POSTS_DATA;
+    return [];
   });
   const [tours, setTours] = useState([]);
   const [operators, setOperators] = useState([]);
   const [isLoadingBackendData, setIsLoadingBackendData] = useState(false);
+
+  // Follow & Obunachilar tizimi (Follow / Unfollow state)
+  const [followedIds, setFollowedIds] = useState(() => {
+    const saved = localStorage.getItem('tourly_followed_ids');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
+    }
+    return [];
+  });
+
+  const [followersCounts, setFollowersCounts] = useState(() => {
+    const saved = localStorage.getItem('tourly_followers_counts');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
+    }
+    return {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tourly_followed_ids', JSON.stringify(followedIds));
+  }, [followedIds]);
+
+  useEffect(() => {
+    localStorage.setItem('tourly_followers_counts', JSON.stringify(followersCounts));
+  }, [followersCounts]);
+
+  const handleToggleFollow = async (targetUserOrId) => {
+    if (!user) {
+      setAuthMode('login');
+      setIsAuthOpen(true);
+      return;
+    }
+
+    const targetId = typeof targetUserOrId === 'object' ? (targetUserOrId.id || targetUserOrId.name) : targetUserOrId;
+    if (!targetId) return;
+
+    const isCurrentlyFollowed = followedIds.includes(targetId);
+
+    // Optimistic UI update
+    setFollowedIds((prev) =>
+      isCurrentlyFollowed ? prev.filter((id) => id !== targetId) : [...prev, targetId]
+    );
+
+    setFollowersCounts((prev) => {
+      const current = prev[targetId] !== undefined ? prev[targetId] : (typeof targetUserOrId === 'object' && targetUserOrId.followersCount ? targetUserOrId.followersCount : 0);
+      return {
+        ...prev,
+        [targetId]: isCurrentlyFollowed ? Math.max(0, current - 1) : current + 1,
+      };
+    });
+
+    const numId = parseInt(targetId, 10);
+    if (!isNaN(numId) && numId > 0) {
+      try {
+        await api.toggleFollow(numId);
+      } catch (err) {
+        console.warn('[Tourly] Backend follow:', err.message);
+      }
+    }
+  };
 
   // Telegram Chat Modal State
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -121,24 +186,18 @@ export default function App() {
   // Post creation state
   const [isPostCreateOpen, setIsPostCreateOpen] = useState(false);
 
-  // Storage persisted: Bookings, Verifications, Favorites
+  // Storage persisted: Bookings, Verifications, Favorites (Tozalangan, faqat haqiqiy)
   const [bookings, setBookings] = useState(() => {
     const saved = localStorage.getItem('tourly_bookings');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((b) => b.id !== 1001);
+        }
+      } catch (e) { /* ignore */ }
     }
-    return [
-      {
-        id: 1001,
-        service_type: 'train',
-        service_title: 'Afrosiyob Tezyurar Poyezdi (Toshkent — Samarqand)',
-        date: '2026-10-05',
-        guests: 2,
-        total_price: "350 000 so'm",
-        status: 'Tasdiqlangan',
-        ticketCode: 'TK-762-AFR',
-      },
-    ];
+    return [];
   });
 
   const [verifications, setVerifications] = useState(() => {
@@ -146,15 +205,25 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter((v) => v.id > 100);
+        }
       } catch (e) { /* ignore */ }
     }
-    return INITIAL_VERIFICATIONS;
+    return [];
   });
 
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem('tourly_favorites');
-    return saved ? JSON.parse(saved) : [1, 201];
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((f) => f !== 1 && f !== 201);
+        }
+      } catch (e) { /* ignore */ }
+    }
+    return [];
   });
 
   // Notifications State
@@ -230,7 +299,17 @@ export default function App() {
         }
       );
     }
+
+    // 401 sessiya tugash event — api.js dan keladi, login modalni ochamiz
+    const handleSessionExpired = () => {
+      setUser(null);
+      setAuthMode('login');
+      setIsAuthOpen(true);
+    };
+    window.addEventListener('tourly:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('tourly:session-expired', handleSessionExpired);
   }, []);
+
 
   // Fetch Real Data from Backend API Endpoints (/asosiy/home, /menu/..., /posts/feed, /bookings/)
   const loadBackendData = async (region = selectedRegion) => {
@@ -754,6 +833,7 @@ export default function App() {
             <InteractiveMap
               userLocation={userLocation}
               setUserLocation={setUserLocation}
+              listings={[...cottages, ...hotels, ...restaurants, ...taxis, ...guides]}
               onClose={() => setActiveNav('home')}
             />
           </div>
@@ -770,6 +850,9 @@ export default function App() {
               favorites={favorites}
               posts={posts}
               allListings={[...cottages, ...hotels, ...restaurants, ...taxis, ...guides]}
+              followedIds={followedIds}
+              onToggleFollow={handleToggleFollow}
+              followersCounts={followersCounts}
               onCancelBooking={handleCancelBooking}
               onRequestLogin={() => {
                 setAuthMode('login');
@@ -788,7 +871,7 @@ export default function App() {
         <AppFooter />
       </main>
 
-      {/* 3. FLOATING BOTTOM NAVIGATION BAR (Home, Posts, Map, Profile — No Reels!) */}
+      {/* 3. FLOATING BOTTOM NAVIGATION BAR (Home, Reels, Map, Profile — Persistent on Reels) */}
       <BottomNav
         activeNav={activeNav}
         setActiveNav={(nav) => {
@@ -798,6 +881,8 @@ export default function App() {
           setActiveNav(nav);
         }}
         onOpenPostFeed={() => handleOpenPostFeed()}
+        isReelsOpen={isPostsFeedOpen}
+        onCloseReels={() => setIsPostsFeedOpen(false)}
       />
 
       {/* 4. MODALS */}
@@ -809,6 +894,8 @@ export default function App() {
         initialPostId={selectedPostIdForFeed}
         posts={posts}
         currentUser={user}
+        followedIds={followedIds}
+        onToggleFollow={handleToggleFollow}
         onRequestLogin={() => {
           setAuthMode('login');
           setIsAuthOpen(true);
@@ -874,7 +961,16 @@ export default function App() {
           type={transportModalType}
           isOpen={!!transportModalType}
           onClose={() => setTransportModalType(null)}
-          onSubmit={handleBookingSubmit}
+          onSelectBooking={(item) => {
+            setTransportModalType(null);
+            setSelectedBookingItem({
+              ...item,
+              service_type: item.type || transportModalType,
+              service_title: item.trainNumber || item.flightNumber || item.busNumber || item.title || 'Transport',
+              title: item.trainNumber || item.flightNumber || item.busNumber || item.title,
+              price: item.price || item.classes?.[0]?.price,
+            });
+          }}
         />
       )}
 

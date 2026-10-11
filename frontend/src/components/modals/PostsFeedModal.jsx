@@ -12,6 +12,8 @@ export default function PostsFeedModal({
   initialPostId = null,
   posts = [],
   currentUser = null,
+  followedIds = [],
+  onToggleFollow,
   onRequestLogin,
   onOpenProfile,
   onOpenChat,
@@ -31,24 +33,15 @@ export default function PostsFeedModal({
   const [commentsState, setCommentsState] = useState(() => {
     const saved = localStorage.getItem('tourly_post_comments');
     if (saved) {
-      try { return JSON.parse(saved); } catch { /* ignore */ }
+      try {
+        const parsed = JSON.parse(saved);
+        // Tozalash: 301-304 mock postlar uchun saqlangan izohlarni olib tashlash
+        const cleaned = { ...parsed };
+        [301, 302, 303, 304].forEach((id) => delete cleaned[id]);
+        return cleaned;
+      } catch { /* ignore */ }
     }
-    return {
-      301: [
-        { id: 101, author: "Farrux Zokirov", text: "Toshkent oqshomi rostdan ham betakror! Mehmonxona hovlisi ajoyib ekan.", time: "1 soat oldin" },
-        { id: 102, author: "Nilufar Usmonova", text: "Havo juda toza, dam olish uchun eng yaxshi joy.", time: "30 daqiqa oldin" }
-      ],
-      302: [
-        { id: 201, author: "Bobur Mirzo", text: "Tandir somsa haqiqatdan ham Samarqandning tashrif qog'ozi! 👏", time: "2 soat oldin" },
-        { id: 202, author: "Ziyoda Karimova", text: "Go'shti juda yumshoq va xushbo'y ekan, borib ko'rishni tavsiya qilaman.", time: "15 daqiqa oldin" }
-      ],
-      303: [
-        { id: 301, author: "Jamshid Rustamov", text: "Registon maydoniga har borganimda yangi ilhom olaman!", time: "45 daqiqa oldin" }
-      ],
-      304: [
-        { id: 401, author: "Madina Aliyeva", text: "Boysun tog'lari va Omonxona manzaralari daxshat go'zal!", time: "2 soat oldin" }
-      ]
-    };
+    return {};
   });
 
   const [isMuted, setIsMuted] = useState(true);
@@ -69,14 +62,8 @@ export default function PostsFeedModal({
     }
   }, []);
 
-  // Potential share recipients
-  const shareRecipients = [
-    { id: 'usr_1', name: "Asilbek Dinarov", role: "Mehmonxona Muassisi" },
-    { id: 'usr_2', name: "Komiljon Rahimov", role: "Taksi haydovchisi" },
-    { id: 'usr_3', name: "Aziza Xolmurodova", role: "Professional Gid" },
-    { id: 'usr_4', name: "Javohir Samadov", role: "Sayyoh & Blogger" },
-    { id: 'usr_5', name: "Botirbek Aliyev", role: "Zomin Kottej Egasi" },
-  ];
+  // Share recipients — real users only (no mock data)
+  const shareRecipients = [];
 
   useEffect(() => {
     localStorage.setItem('tourly_post_likes', JSON.stringify(likesState));
@@ -403,8 +390,8 @@ export default function PostsFeedModal({
                   )}
                 </div>
 
-                {/* Right Side Action Bar (Instagram / Reels Style) */}
-                <div className="absolute right-3 bottom-24 sm:bottom-20 z-20 flex flex-col items-center gap-5 text-white">
+                {/* Right Side Action Bar (Instagram / Reels Style, lifted above BottomNav) */}
+                <div className="absolute right-3 bottom-28 sm:bottom-24 z-20 flex flex-col items-center gap-4 sm:gap-5 text-white">
                   
                   {/* Like Button */}
                   <div className="flex flex-col items-center">
@@ -469,44 +456,64 @@ export default function PostsFeedModal({
                   </button>
                 </div>
 
-                {/* Bottom Author & Caption Info */}
-                <div className="relative z-10 p-4 sm:p-5 pr-16 text-white space-y-2 pointer-events-auto">
+                {/* Bottom Author & Caption Info (Padding pb-20 sm:pb-24 so BottomNav never obscures content) */}
+                <div className="relative z-10 p-4 sm:p-5 pr-16 pb-20 sm:pb-24 text-white space-y-2 pointer-events-auto">
                   
-                  {/* Author profile tag */}
-                  <div
-                    className="flex items-center gap-2.5 cursor-pointer group w-fit"
-                    onClick={() => {
-                      onClose();
-                      onOpenProfile?.({
-                        id: post.id,
-                        name: post.author,
-                        role: post.authorRole || "Sayyoh & Muallif",
-                        location: post.location,
-                        avatar: post.image,
-                      });
-                    }}
-                  >
-                    <div className="p-0.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600">
-                      <div className="bg-black p-0.5 rounded-full">
-                        <InitialsAvatar name={post.author || 'Sayyoh'} size="sm" />
+                  {/* Author profile tag & Follow Button */}
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <div
+                      className="flex items-center gap-2.5 cursor-pointer group w-fit"
+                      onClick={() => {
+                        onClose();
+                        onOpenProfile?.({
+                          id: post.authorId || post.id,
+                          name: post.author,
+                          role: post.authorRole || "Sayyoh & Muallif",
+                          location: post.location,
+                          avatar: post.image,
+                        });
+                      }}
+                    >
+                      <div className="p-0.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600">
+                        <div className="bg-black p-0.5 rounded-full">
+                          <InitialsAvatar name={post.author || 'Sayyoh'} size="sm" />
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-extrabold text-sm text-white group-hover:text-rose-400 transition drop-shadow leading-tight">
-                          {post.author}
-                        </span>
-                        {post.authorRole && (
-                          <span className="text-[10px] bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-full font-medium">
-                            {post.authorRole}
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-extrabold text-sm text-white group-hover:text-rose-400 transition drop-shadow leading-tight">
+                            {post.author}
                           </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 text-[11px] text-white/80 mt-0.5">
-                        <MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                        <span>{post.location || "O'zbekiston"}</span>
+                          {post.authorRole && (
+                            <span className="text-[10px] bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-full font-medium">
+                              {post.authorRole}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-[11px] text-white/80 mt-0.5">
+                          <MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                          <span>{post.location || "O'zbekiston"}</span>
+                        </div>
                       </div>
                     </div>
+
+                    {/* Follow Button on Post */}
+                    {onToggleFollow && post.author && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleFollow(post.authorId || post.author);
+                        }}
+                        className={`px-3 py-1 rounded-full text-[10px] font-extrabold transition active:scale-95 shadow-md ${
+                          followedIds.includes(post.authorId || post.author)
+                            ? 'bg-white/25 text-white border border-white/40 backdrop-blur-xs'
+                            : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                        }`}
+                      >
+                        {followedIds.includes(post.authorId || post.author) ? 'Obunadasiz' : '+ Obuna'}
+                      </button>
+                    )}
                   </div>
 
                   {/* Caption */}

@@ -82,13 +82,15 @@ export default function PostCreateModal({ isOpen, onClose, currentUser, onSubmit
 
       const formattedPost = {
         id: response.id || Date.now(),
-        author: response.user?.username || currentUser?.firstName || 'Sayyoh',
+        author: `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || response.user?.username || currentUser?.username || 'Sayyoh',
+        authorId: currentUser?.id || response.user?.id,
+        authorEmail: currentUser?.email,
         authorRole: "Sayyoh & Muallif",
         authorAvatar: response.user?.avatar || currentUser?.avatar || null,
         location: response.location_name || location.trim() || "O'zbekiston",
         caption: response.caption || caption.trim(),
-        image: response.media_type === 'image' ? response.media : null,
-        videoUrl: response.media_type === 'video' ? response.media : null,
+        image: response.media_type === 'image' ? response.media : (mediaType === 'image' ? finalMedia : null),
+        videoUrl: response.media_type === 'video' ? response.media : (mediaType === 'video' ? finalMedia : null),
         likes: response.likes_count || 0,
         commentsCount: response.comments_count || 0,
         timeAgo: 'Hozirgina',
@@ -125,9 +127,9 @@ export default function PostCreateModal({ isOpen, onClose, currentUser, onSubmit
             </div>
             <div>
               <h3 className="font-extrabold text-sm sm:text-base text-gray-900 leading-tight">
-                Yangi Post Yuklash
+                Rasm yoki Video joylash
               </h3>
-              <p className="text-[11px] text-gray-500">Rasm yoki video (MP4) orqali taassurotlaringizni ulashing</p>
+              <p className="text-[11px] text-gray-500">Fayl tanlang, sarlavha va tavsif yozib profilingizga joylang</p>
             </div>
           </div>
           <button

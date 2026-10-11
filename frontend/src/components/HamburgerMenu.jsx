@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   X, ChevronRight, UserCheck, Car, Home, Hotel, UtensilsCrossed,
@@ -22,16 +23,6 @@ export default function HamburgerMenu({
       iconColor: 'text-[#38B0DC]',
       bgColor: 'bg-[#38B0DC]/10',
       action: () => onOpenService('feed'),
-    },
-    {
-      id: 'reels',
-      title: 'Reels (Sayohatchilar Tasmasi)',
-      subtitle: "Instagram uslubidagi video va rasm postlari",
-      icon: Sparkles,
-      iconColor: 'text-rose-500',
-      bgColor: 'bg-rose-50',
-      badge: 'TOP',
-      action: () => onOpenService('reels'),
     },
     {
       id: 'guide',

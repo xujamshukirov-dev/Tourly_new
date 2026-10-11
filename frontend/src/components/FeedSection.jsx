@@ -742,12 +742,24 @@ export default function FeedSection({
       )}
 
       {/* Category Empty States */}
+      {activeTab === 'all' && taxis.length === 0 && cottages.length === 0 && restaurants.length === 0 && hotels.length === 0 && guides.length === 0 && tours.length === 0 && (
+        <div className="py-20 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm max-w-md mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-[#2E5A27]/10 text-[#2E5A27] flex items-center justify-center mx-auto shadow-inner">
+            <Sparkles className="w-8 h-8" />
+          </div>
+          <h3 className="text-base sm:text-lg font-bold text-gray-900">Hozircha xizmatlar mavjud emas</h3>
+          <p className="text-xs text-gray-500 max-w-sm mx-auto">
+            Ushbu hududda yangi e'lonlar va xizmatlar hali joylanmagan. Yangi e'lonlar moderatorlar tasdig'idan so'ng paydo bo'ladi.
+          </p>
+        </div>
+      )}
+
       {activeTab === 'taxis' && taxis.length === 0 && (
-        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm">
+        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm max-w-md mx-auto">
           <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mx-auto shadow-inner">
             <Car className="w-7 h-7" />
           </div>
-          <h3 className="text-base font-bold text-gray-900">Hozircha tasdiqlangan taksilar mavjud emas</h3>
+          <h3 className="text-base font-bold text-gray-900">Hozircha xizmatlar mavjud emas</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
             Ushbu hududda yangi haydovchilar hali e'lon bermagan. Yangi haydovchilar arizalari tasdiqlangach shu yerda paydo bo'ladi.
           </p>
@@ -755,11 +767,11 @@ export default function FeedSection({
       )}
 
       {activeTab === 'cottages' && cottages.length === 0 && (
-        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm">
+        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm max-w-md mx-auto">
           <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto shadow-inner">
             <Home className="w-7 h-7" />
           </div>
-          <h3 className="text-base font-bold text-gray-900">Hozircha tasdiqlangan dachalar mavjud emas</h3>
+          <h3 className="text-base font-bold text-gray-900">Hozircha xizmatlar mavjud emas</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
             Dam olish maskanlari va xonadonlar arizalari tasdiqlangach shu yerda paydo bo'ladi.
           </p>
@@ -767,11 +779,11 @@ export default function FeedSection({
       )}
 
       {activeTab === 'restaurants' && restaurants.length === 0 && (
-        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm">
+        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm max-w-md mx-auto">
           <div className="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mx-auto shadow-inner">
             <UtensilsCrossed className="w-7 h-7" />
           </div>
-          <h3 className="text-base font-bold text-gray-900">Hozircha tasdiqlangan restoranlar mavjud emas</h3>
+          <h3 className="text-base font-bold text-gray-900">Hozircha xizmatlar mavjud emas</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
             Milliy taomlar oshxonalari va restoranlar arizalari tasdiqlangach shu yerda paydo bo'ladi.
           </p>
@@ -779,11 +791,11 @@ export default function FeedSection({
       )}
 
       {activeTab === 'hotels' && hotels.length === 0 && (
-        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm">
+        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm max-w-md mx-auto">
           <div className="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto shadow-inner">
             <Hotel className="w-7 h-7" />
           </div>
-          <h3 className="text-base font-bold text-gray-900">Hozircha tasdiqlangan mehmonxonalar mavjud emas</h3>
+          <h3 className="text-base font-bold text-gray-900">Hozircha xizmatlar mavjud emas</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
             Mehmonxonalar va sanatoriylar arizalari tasdiqlangach shu yerda paydo bo'ladi.
           </p>
@@ -791,11 +803,11 @@ export default function FeedSection({
       )}
 
       {activeTab === 'guides' && guides.length === 0 && (
-        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm">
+        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm max-w-md mx-auto">
           <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
             <UserCheck className="w-7 h-7" />
           </div>
-          <h3 className="text-base font-bold text-gray-900">Hozircha tasdiqlangan gidlar mavjud emas</h3>
+          <h3 className="text-base font-bold text-gray-900">Hozircha xizmatlar mavjud emas</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
             Gid yo'lboshchilar arizalari moderatorlar tomonidan tasdiqlangach shu yerda paydo bo'ladi.
           </p>
@@ -803,11 +815,11 @@ export default function FeedSection({
       )}
 
       {activeTab === 'tours' && tours.length === 0 && (
-        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm">
+        <div className="py-16 text-center space-y-3 glass-card rounded-3xl p-8 border border-white/80 shadow-sm max-w-md mx-auto">
           <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
             <Compass className="w-7 h-7" />
           </div>
-          <h3 className="text-base font-bold text-gray-900">Hozircha faol tur paketlari mavjud emas</h3>
+          <h3 className="text-base font-bold text-gray-900">Hozircha xizmatlar mavjud emas</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
             Litsenziyalangan tur operatorlar yangi paketlar joylashtirgach shu yerda paydo bo'ladi.
           </p>
@@ -920,6 +932,70 @@ export default function FeedSection({
             })}
           </div>
         </section>
+      )}
+
+      {/* ============ EMPTY STATE: Tanlangan kategoriyada ma'lumot yo'q ============ */}
+      {activeTab !== 'all' && (
+        (() => {
+          const tabDataMap = {
+            taxis,
+            cottages,
+            restaurants,
+            hotels,
+            guides,
+            tours,
+          };
+          const currentData = tabDataMap[activeTab] || [];
+          if (currentData.length > 0) return null;
+
+          const tabLabelMap = {
+            taxis: 'Taksilar',
+            cottages: 'Uy va Dachalar',
+            restaurants: 'Restoranlar',
+            hotels: 'Mehmonxonalar',
+            guides: 'Gidlar',
+            tours: 'Tur Paketlar',
+          };
+
+          return (
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center space-y-4">
+              <div className="w-20 h-20 rounded-3xl bg-[#2E5A27]/10 flex items-center justify-center">
+                <Sparkles className="w-10 h-10 text-[#2E5A27]/40" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-bold text-gray-800 text-lg">
+                  {tabLabelMap[activeTab] || activeTab} — Hozircha mavjud emas
+                </h3>
+                <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
+                  Hozircha bu kategoriyada xizmatlar mavjud emas.<br />
+                  Yangi e'lonlar tez orada joylashtiriladi.
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveTab('all')}
+                className="px-5 py-2.5 rounded-2xl bg-[#2E5A27] text-white text-sm font-bold hover:bg-[#23451d] transition active:scale-95 shadow-sm"
+              >
+                Barchasi ko'rish
+              </button>
+            </div>
+          );
+        })()
+      )}
+
+      {/* Agar 'all' tab da hech nima yo'q bo'lsa */}
+      {activeTab === 'all' && taxis.length === 0 && cottages.length === 0 && restaurants.length === 0 && hotels.length === 0 && guides.length === 0 && tours.length === 0 && posts.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-24 px-6 text-center space-y-4">
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#2E5A27]/15 to-[#38B0DC]/15 flex items-center justify-center">
+            <Sparkles className="w-12 h-12 text-[#2E5A27]/30" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-bold text-gray-800 text-xl">Xizmatlar yuklanmoqda...</h3>
+            <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
+              Backend API dan ma'lumotlar yuklanmoqda. Agar hozircha bo'sh ko'rinsa —
+              yangi e'lonlar tez orada joylashtiriladi!
+            </p>
+          </div>
+        </div>
       )}
 
     </div>

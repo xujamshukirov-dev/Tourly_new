@@ -17,6 +17,9 @@ export default function UserProfile({
   favorites = [],
   posts = [],
   allListings = [],
+  followedIds = [],
+  onToggleFollow,
+  followersCounts = {},
   onCancelBooking,
   onRequestLogin,
   onOpenCreatePost,
@@ -28,6 +31,12 @@ export default function UserProfile({
 }) {
   const isViewingOther = !!viewingUser;
   const activeProfile = isViewingOther ? viewingUser : user;
+
+  const targetId = viewingUser?.id || viewingUser?.name;
+  const isFollowing = targetId ? followedIds.includes(targetId) : false;
+  const targetFollowersCount = targetId && followersCounts[targetId] !== undefined
+    ? followersCounts[targetId]
+    : (viewingUser?.followersCount !== undefined ? viewingUser.followersCount : (isFollowing ? 1 : 0));
 
   // Single unified "posts" tab — No separated Reels!
   const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'bookings' | 'favorites' | 'settings'
@@ -74,10 +83,11 @@ export default function UserProfile({
     if (!user) return false;
     const myName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
     return (
-      p.author === myName ||
-      p.authorId === user.id ||
-      p.authorEmail === user.email ||
-      (!p.authorId && myName && p.author === myName)
+      (user.id && p.authorId === user.id) ||
+      (user.email && p.authorEmail === user.email) ||
+      (myName && p.author === myName) ||
+      (user.username && p.author === user.username) ||
+      (!p.authorId && !p.authorEmail && myName && p.author === myName)
     );
   });
 
@@ -240,13 +250,36 @@ export default function UserProfile({
           <div className="flex flex-wrap items-center justify-center gap-2">
             {isViewingOther ? (
               <>
+                {/* Follow / Unfollow Button */}
+                <button
+                  type="button"
+                  onClick={() => onToggleFollow?.(viewingUser)}
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-md ${
+                    isFollowing
+                      ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-[#2E5A27] hover:bg-[#23451d] text-white shadow-[#2E5A27]/25'
+                  }`}
+                >
+                  {isFollowing ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Obunadasiz</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Obuna bo'lish</span>
+                    </>
+                  )}
+                </button>
+
                 <button
                   type="button"
                   onClick={() => onOpenChat?.(viewingUser)}
-                  className="px-4 py-2.5 rounded-2xl bg-[#2E5A27] hover:bg-[#23451d] text-white text-xs font-bold shadow-md shadow-[#2E5A27]/25 flex items-center gap-2 transition active:scale-95"
+                  className="px-4 py-2.5 rounded-2xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-800 text-xs font-bold shadow-xs flex items-center gap-1.5 transition active:scale-95"
                 >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Xabar yozish (Telegram)</span>
+                  <MessageSquare className="w-4 h-4 text-[#2E5A27]" />
+                  <span>Xabar</span>
                 </button>
 
                 {viewingUser?.phone && (
@@ -263,18 +296,18 @@ export default function UserProfile({
               <button
                 type="button"
                 onClick={onOpenCreatePost}
-                className="px-4 py-2 rounded-2xl bg-[#2E5A27] hover:bg-[#23451d] text-white text-xs font-bold shadow-md shadow-[#2E5A27]/25 flex items-center gap-1.5 transition active:scale-95"
+                className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#2E5A27] to-emerald-600 hover:from-[#23451d] hover:to-emerald-700 text-white text-xs font-extrabold shadow-lg shadow-[#2E5A27]/30 flex items-center gap-2 transition hover:scale-105 active:scale-95"
               >
-                <Plus className="w-4 h-4" />
-                <span>Yangi Post Yuklash</span>
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>Rasm yoki Video joylash (+)</span>
               </button>
             )}
           </div>
 
         </div>
 
-        {/* Unified Stats counter */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 mt-6 pt-5 border-t border-gray-100 text-center">
+        {/* Unified Stats counter (Followers, Following, Posts, Bookings) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mt-6 pt-5 border-t border-gray-100 text-center">
           <div className="bg-white/60 p-2 sm:p-3 rounded-2xl border border-white">
             <span className="block text-base sm:text-xl font-extrabold text-gray-900">
               {displayedPosts.length}
@@ -283,22 +316,27 @@ export default function UserProfile({
           </div>
 
           <div className="bg-white/60 p-2 sm:p-3 rounded-2xl border border-white">
-            <span className="block text-base sm:text-xl font-extrabold text-gray-900">
-              {isViewingOther ? (viewingUser.rating || '5.0') : bookings.length}
+            <span className="block text-base sm:text-xl font-extrabold text-[#2E5A27]">
+              {isViewingOther ? targetFollowersCount : (user?.followers_count || 0)}
             </span>
-            <span className="text-[11px] text-gray-500 font-medium">
-              {isViewingOther ? 'Reyting ⭐' : 'Buyurtmalar'}
-            </span>
+            <span className="text-[11px] text-gray-500 font-medium">Obunachilar</span>
           </div>
 
-          {!isViewingOther && (
-            <div className="col-span-2 sm:col-span-1 bg-white/60 p-2 sm:p-3 rounded-2xl border border-white">
-              <span className="block text-base sm:text-xl font-extrabold text-gray-900">
-                {favorites.length}
-              </span>
-              <span className="text-[11px] text-gray-500 font-medium">Saqlanganlar</span>
-            </div>
-          )}
+          <div className="bg-white/60 p-2 sm:p-3 rounded-2xl border border-white">
+            <span className="block text-base sm:text-xl font-extrabold text-gray-900">
+              {isViewingOther ? (viewingUser.following_count || 0) : followedIds.length}
+            </span>
+            <span className="text-[11px] text-gray-500 font-medium">Obunalar</span>
+          </div>
+
+          <div className="bg-white/60 p-2 sm:p-3 rounded-2xl border border-white">
+            <span className="block text-base sm:text-xl font-extrabold text-gray-900">
+              {isViewingOther ? (viewingUser.rating || '5.0 ⭐') : bookings.length}
+            </span>
+            <span className="text-[11px] text-gray-500 font-medium">
+              {isViewingOther ? 'Reyting' : 'Buyurtmalar'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -693,6 +731,18 @@ export default function UserProfile({
             </form>
           </div>
         </div>
+      )}
+
+      {/* FLOATING ACTION BUTTON (+) — KO'ZGA TASHLANADIGAN RASM/VIDEO YUKLASH TUGMASI */}
+      {!isViewingOther && (
+        <button
+          type="button"
+          onClick={onOpenCreatePost}
+          className="fixed bottom-24 right-5 sm:right-8 z-40 w-14 h-14 rounded-full bg-gradient-to-tr from-[#2E5A27] via-emerald-600 to-[#38B0DC] hover:from-[#23451d] hover:to-emerald-700 text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 border-2 border-white group"
+          title="Rasm yoki Video joylash (+)"
+        >
+          <Plus className="w-7 h-7 stroke-[3] transition-transform duration-300 group-hover:rotate-90" />
+        </button>
       )}
 
     </div>

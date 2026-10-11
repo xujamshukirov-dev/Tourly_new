@@ -4,9 +4,6 @@
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 const BASE_URL = rawBaseUrl.replace(/^https?:\/\/[^/]+/, '');
 
-// Verified active JWT access token for Tolibjon Shuhratov (User ID 4 in backend DB)
-export const DEFAULT_AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0IiwiZXhwIjoxODIyODQ3OTcxLCJ0eXBlIjoiYWNjZXNzIn0.0usgyBe4sNAdnkExjj7sgiOfJQZtUdpWoAl6Yk4TY1Q';
-
 export function getStoredToken() {
   const tokenKeys = [
     'tourly_access_token',
@@ -42,9 +39,7 @@ export function getStoredToken() {
     // ignore parse error
   }
 
-  // Fallback to active valid token so Tolibjon Shuhratov and authenticated actions
-  // (bookings, posts, verifications, routes) always succeed with HTTP 200/201 instead of 401
-  return DEFAULT_AUTH_TOKEN;
+  return null;
 }
 
 export function setStoredToken(token) {
@@ -59,7 +54,16 @@ export function setStoredToken(token) {
   }
 }
 
-async function request(endpoint, options = {}, isRetry = false) {
+/** Sessiyani tozalash va login modalini ochish uchun global event */
+function clearSessionAndRedirect() {
+  setStoredToken(null);
+  localStorage.removeItem('tourly_current_user');
+  localStorage.removeItem('user');
+  // Global event chiqaramiz — App.jsx uni tinglaydi va AuthModal ni ochadi
+  window.dispatchEvent(new CustomEvent('tourly:session-expired'));
+}
+
+async function request(endpoint, options = {}) {
   const token = getStoredToken();
   const isFormData = options.body instanceof FormData;
 
@@ -78,10 +82,12 @@ async function request(endpoint, options = {}, isRetry = false) {
     headers,
   });
 
-  if (res.status === 401 && !isRetry && token !== DEFAULT_AUTH_TOKEN) {
-    // If custom token expired or failed, retry once with fallback default auth token
-    localStorage.setItem('tourly_access_token', DEFAULT_AUTH_TOKEN);
-    return request(endpoint, options, true);
+  if (res.status === 401) {
+    // Token muddati tugagan yoki noto'g'ri — sessiyani tozalaymiz va login ga yo'naltiramiz
+    clearSessionAndRedirect();
+    const error = new Error('Sessiya muddati tugadi. Iltimos, qayta kiring.');
+    error.status = 401;
+    throw error;
   }
 
   if (!res.ok) {
@@ -226,28 +232,14 @@ export const api = {
   },
 
   // Fayl yuklash (passport, rasm, video) via multipart/form-data
+  // Agar backend /api/upload endpoint xato bersa — xatolikni qaytaradi (base64 fallback yo'q)
   async uploadFile(file) {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      return await request('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-    } catch {
-      // If backend does not expose standalone /api/upload,
-      // convert to Data URL so it is stored directly in DB media string column
-      return new Promise((resolve, reject) => {
-        if (typeof FileReader === 'undefined') {
-          resolve({ url: `/images/${file.name || 'uploaded_file'}`, filename: file.name });
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = () => resolve({ url: reader.result, filename: file.name });
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
+    const formData = new FormData();
+    formData.append('file', file);
+    return await request('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
   },
 
   // ARIZA TOPSHIRISH (POST /menu/{category})
