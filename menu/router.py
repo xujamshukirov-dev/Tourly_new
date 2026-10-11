@@ -28,7 +28,7 @@ def get_model_or_404(category: str):
     return MODEL_MAP[category]
 
 
-# ---- LIST (ochiq — faqat approved, pasportsiz) ----
+# ---- LIST (ochiq â€” faqat approved, pasportsiz) ----
 @router.get("/{category}")
 async def list_verifications(
     category: str,
@@ -61,11 +61,12 @@ async def create_verification(
     if existing:
         raise HTTPException(status_code=400, detail="Siz allaqachon ariza topshirgansiz!")
 
-    obj = await crud.create_verification(db, model, current_user.id, validated.model_dump())
+    payload = {k: v for k, v in validated.model_dump().items() if hasattr(model, k)}
+    obj = await crud.create_verification(db, model, current_user.id, payload)
     return read_schema.model_validate(obj)
 
 
-# ---- DETAIL (ochiq — pasportsiz) ----
+# ---- DETAIL (ochiq â€” pasportsiz) ----
 @router.get("/{category}/{verification_id}")
 async def get_verification(
     category: str,

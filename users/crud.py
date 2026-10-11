@@ -115,7 +115,7 @@ async def get_or_create_by_email(db: AsyncSession, email: str, first_name: str =
     if user:
         return user
 
-    # Yangi foydalanuvchi — username hozircha email'ning boshi bilan, keyin complete-profile'da o'zgartiriladi
+
     base_username = email.split("@")[0]
     username = base_username
     counter = 1
@@ -126,10 +126,10 @@ async def get_or_create_by_email(db: AsyncSession, email: str, first_name: str =
     user = User(
         username=username,
         email=email,
-        hashed_password="",   # Google orqali kirgan, parol yo'q
+        hashed_password="",
         first_name=first_name,
         last_name=last_name,
-        is_verified=True,     # Google email tasdiqlangan hisoblanadi
+        is_verified=True,
     )
     db.add(user)
     await db.commit()

@@ -1,3 +1,4 @@
+from sqlalchemy import false as sa_false
 from sqlalchemy import select, func, exists, and_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -13,8 +14,8 @@ def _post_query(current_user_id: int | None = None):
         is_liked_sq = select(exists().where(and_(Like.post_id == Post.id, Like.user_id == current_user_id))).scalar_subquery()
         is_saved_sq = select(exists().where(and_(Save.post_id == Post.id, Save.user_id == current_user_id))).scalar_subquery()
     else:
-        is_liked_sq = func.false()
-        is_saved_sq = func.false()
+        is_liked_sq = sa_false()
+        is_saved_sq = sa_false()
 
     return select(
         Post,

@@ -48,7 +48,7 @@ async def delete_verification(db: AsyncSession, obj):
     await db.delete(obj)
     await db.commit()
 
-# ==================== TUR (TOUR) ====================
+
 from .models import Tour, TourRasm, TourKompaniya
 
 
@@ -58,7 +58,7 @@ async def create_tour(db: AsyncSession, kompaniya_id: int, data: dict):
 
     tour = Tour(kompaniya_id=kompaniya_id, **data)
     db.add(tour)
-    await db.flush()          # tour.id ni olish uchun (commit'dan oldin)
+    await db.flush()
 
     for url in images:
         db.add(TourRasm(tour_id=tour.id, image=url))

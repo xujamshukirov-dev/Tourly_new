@@ -18,7 +18,7 @@ class User(Base):
 
     avatar: Mapped[str | None] = mapped_column(String(500), nullable=True)
     bio: Mapped[str] = mapped_column(Text, default="")
-    phone: Mapped[str] = mapped_column(String(11), default="")
+    phone: Mapped[str] = mapped_column(String(20), default="")
 
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     profile_completed: Mapped[bool] = mapped_column(Boolean, default=False)

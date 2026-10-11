@@ -7,8 +7,8 @@ from core.database import Base
 class Post(Base):
     __tablename__ = "posts"
     __table_args__ = (
-        Index("ix_post_user_created", "user_id", "created_at"),   # profil sahifasi uchun
-        Index("ix_post_created_at", "created_at"),                 # feed uchun (eng yangi postlar)
+        Index("ix_post_user_created", "user_id", "created_at"),
+        Index("ix_post_created_at", "created_at"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -28,8 +28,8 @@ class Like(Base):
     __tablename__ = "likes"
     __table_args__ = (
         UniqueConstraint("user_id", "post_id", name="uq_like_user_post"),
-        Index("ix_like_post", "post_id"),   # "shu postni nechta kishi like qilgan" tez hisoblash uchun
-        Index("ix_like_user", "user_id"),   # "men like qilgan postlar" tez topish uchun
+        Index("ix_like_post", "post_id"),
+        Index("ix_like_user", "user_id"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -41,7 +41,7 @@ class Like(Base):
 class Comment(Base):
     __tablename__ = "comments"
     __table_args__ = (
-        Index("ix_comment_post_created", "post_id", "created_at"),  # posts ostidagi kommentlar tartibi bilan
+        Index("ix_comment_post_created", "post_id", "created_at"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)

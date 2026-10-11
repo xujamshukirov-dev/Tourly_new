@@ -87,7 +87,7 @@ async def get_pois_along_route(coords: list[dict], poi_type: str) -> list[dict]:
     else:  # food
         tag_query = 'node["amenity"~"restaurant|cafe|fast_food"]'
 
-    # Yo'lni ~50 km'lik bo'laklarga bo'lamiz, har biriga alohida so'rov
+
     chunk_points = _sample_route_points(coords, interval_km=50)
     all_elements = []
     seen_element_ids = set()
@@ -127,7 +127,7 @@ async def get_pois_along_route(coords: list[dict], poi_type: str) -> list[dict]:
     if not all_elements:
         return []
 
-    # ---- Har 10 km segmentdan eng yaqin 1 tasini tanlaymiz ----
+
     sample_points = _sample_route_points(coords, interval_km=10)
 
     results = []
@@ -164,7 +164,7 @@ async def get_pois_along_route(coords: list[dict], poi_type: str) -> list[dict]:
     return results
 
 
-# ==================== YAQIN-ATROFDA (nuqta atrofida qidirish) ====================
+
 
 NEARBY_TAGS = {
     "salon":      ['node["shop"="beauty"]', 'node["shop"="hairdresser"]'],
@@ -222,7 +222,7 @@ async def get_nearby_pois(lat: float, lng: float, radius: int, types: list[str])
     return results
 
 
-# ==================== GEOCODING (manzil -> koordinata) ====================
+
 
 async def geocode_address(query: str) -> dict | None:
     """
@@ -234,11 +234,11 @@ async def geocode_address(query: str) -> dict | None:
         "q": query,
         "format": "json",
         "limit": 1,
-        "countrycodes": "uz",       # faqat O'zbekiston ichida qidiradi
+        "countrycodes": "uz",
         "accept-language": "uz",
     }
     headers = {
-        "User-Agent": "TourlyApp/1.0"   # Nominatim buni talab qiladi, bo'sh qoldirsa rad etadi
+        "User-Agent": "TourlyApp/1.0"
     }
 
     async with httpx.AsyncClient(timeout=15.0) as client:

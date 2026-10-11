@@ -10,7 +10,7 @@ from decimal import Decimal
 from sqlalchemy import String, Text, Numeric, DateTime, Date, Integer, ForeignKey, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.database import Base  # TAXMIN — haqiqiy import yo'lini tasdiqlang
+from core.database import Base  
 
 
 class VerificationMixin:
@@ -27,7 +27,7 @@ class VerificationMixin:
     email: Mapped[str] = mapped_column(String(255))
     phone: Mapped[str] = mapped_column(String(30), default="")
     passport_series: Mapped[str] = mapped_column(String(50), default="")
-    passport_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    passport_image: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -36,7 +36,7 @@ class GuideVerification(VerificationMixin, Base):
     __tablename__ = "guide_verifications"
 
     language: Mapped[str] = mapped_column(String(60))
-    image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    image: Mapped[str | None] = mapped_column(Text, nullable=True)
     bio: Mapped[str] = mapped_column(Text, default="")
     viloyat: Mapped[str] = mapped_column(String(50), index=True)
     tuman: Mapped[str] = mapped_column(String(50), index=True)
@@ -46,7 +46,7 @@ class TaxiVerification(VerificationMixin, Base):
 
     car_model: Mapped[str] = mapped_column(String(100))
     car_number: Mapped[str] = mapped_column(String(20))
-    image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    image: Mapped[str | None] = mapped_column(Text, nullable=True)
     bio: Mapped[str] = mapped_column(Text, default="")
     viloyat: Mapped[str] = mapped_column(String(50), index=True)
     tuman: Mapped[str] = mapped_column(String(50), index=True)
@@ -56,7 +56,7 @@ class HomeRentVerification(VerificationMixin, Base):
 
     address: Mapped[str] = mapped_column(String(200))
     room_count: Mapped[int] = mapped_column(Integer)
-    image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    image: Mapped[str | None] = mapped_column(Text, nullable=True)
     bio: Mapped[str] = mapped_column(Text, default="")
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -69,7 +69,7 @@ class RestoranVerification(VerificationMixin, Base):
 
     address: Mapped[str] = mapped_column(String(200))
     cuisine: Mapped[str] = mapped_column(String(100))
-    image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    image: Mapped[str | None] = mapped_column(Text, nullable=True)
     bio: Mapped[str] = mapped_column(Text, default="")
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -82,7 +82,7 @@ class HotelVerification(VerificationMixin, Base):
     address: Mapped[str] = mapped_column(String(200))
     room_count: Mapped[int] = mapped_column(Integer)
     star_count: Mapped[int] = mapped_column(Integer, default=1)
-    image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    image: Mapped[str | None] = mapped_column(Text, nullable=True)
     bio: Mapped[str] = mapped_column(Text, default="")
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -90,9 +90,9 @@ class HotelVerification(VerificationMixin, Base):
     tuman: Mapped[str] = mapped_column(String(50), index=True)
 
 class BiletStatus(str, enum.Enum):
-    PENDING = "pending"          # yaratildi, to'lov kutilmoqda
-    PAID = "paid"                # to'lov o'tdi
-    CONFIRMED = "confirmed"      # bilet tasdiqlandi (provayder tomonidan yoki avtomatik)
+    PENDING = "pending"
+    PAID = "paid"
+    CONFIRMED = "confirmed"
     CANCELLED = "cancelled"
 
 
@@ -125,7 +125,7 @@ class PoyezdBilet(Base):
     __tablename__ = "poyezd_bilet"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))  # TAXMIN — users jadval nomini tasdiqlang
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     reys_id: Mapped[int] = mapped_column(ForeignKey("poyezd_reys.id"))
 
     passenger_name: Mapped[str] = mapped_column(String(255))
@@ -238,7 +238,7 @@ class AvtobusBilet(Base):
 
     reys: Mapped["AvtobusReys"] = relationship(back_populates="biletlar")
 
-# ==================== TUR (TOUR) ====================
+
 
 class TourKompaniya(VerificationMixin, Base):
     """Tur kompaniyasi ro'yxatdan o'tishi (verification).
@@ -246,10 +246,10 @@ class TourKompaniya(VerificationMixin, Base):
     __tablename__ = "tour_kompaniya"
 
     company_name: Mapped[str] = mapped_column(String(200))
-    license_number: Mapped[str] = mapped_column(String(100))   # majburiy — turoperator litsenziyasi
+    license_number: Mapped[str] = mapped_column(String(100))   
     address: Mapped[str] = mapped_column(String(200))
-    logo: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    license_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    logo: Mapped[str | None] = mapped_column(Text, nullable=True)
+    license_image: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     tourlar: Mapped[list["Tour"]] = relationship(back_populates="kompaniya")
 
@@ -265,8 +265,8 @@ class Tour(Base):
 
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text, default="")
-    route: Mapped[str] = mapped_column(String(255))            # yo'nalish: "Samarqand → Buxoro"
-    price: Mapped[Decimal] = mapped_column(Numeric(12, 2))     # 1 kishi uchun
+    route: Mapped[str] = mapped_column(String(255))
+    price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     duration_days: Mapped[int] = mapped_column(Integer)
     available_seats: Mapped[int] = mapped_column(Integer)
 
@@ -289,6 +289,6 @@ class TourRasm(Base):
     tour_id: Mapped[int] = mapped_column(
         ForeignKey("tour.id", ondelete="CASCADE"), index=True
     )
-    image: Mapped[str] = mapped_column(String(500))
+    image: Mapped[str] = mapped_column(Text)
 
     tour: Mapped["Tour"] = relationship(back_populates="rasmlar")

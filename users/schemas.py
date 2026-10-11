@@ -33,7 +33,7 @@ class UserPublicProfile(BaseModel):
     is_verified: bool
     followers_count: int
     following_count: int
-    is_following: bool = False  # so'rov yuborgan user follow qilganmi
+    is_following: bool = False
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -50,7 +50,7 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 class GoogleAuthRequest(BaseModel):
-    token: str  # Google'dan kelgan ID token
+    token: str
 
 
 class CompleteProfileRequest(BaseModel):

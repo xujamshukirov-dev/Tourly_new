@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
 
-# ---------- Yaratish uchun (POST) ----------
+
 class VerificationBase(BaseModel):
     first_name: str
     last_name: str
@@ -52,7 +52,7 @@ class HotelCreate(VerificationBase):
     image: str | None = None
 
 
-# ---------- To'liq ko'rish (faqat egasi/admin uchun — pasport bilan) ----------
+
 class VerificationRead(VerificationBase):
     model_config = ConfigDict(from_attributes=True)
 
@@ -97,7 +97,7 @@ class HotelRead(VerificationRead):
     image: str | None
 
 
-# ---------- Ommaviy ko'rish (GET — pasport ma'lumotisiz) ----------
+
 class VerificationPublicRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -106,8 +106,8 @@ class VerificationPublicRead(BaseModel):
     last_name: str
     phone: str
     status: str
-    latitude: float | None
-    longitude: float | None
+    latitude: float | None = None
+    longitude: float | None = None
     viloyat: str
     tuman: str
 
@@ -246,29 +246,27 @@ class AvtobusBiletOut(BaseModel):
     class Config:
         from_attributes = True
 
-# ==================== TUR (TOUR) ====================
 
-# ---------- TourRasm (galereya) ----------
 class TourRasmRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     image: str
 
 
-# ---------- Kompaniya: yaratish (POST) ----------
+
 class TourKompaniyaCreate(BaseModel):
-    first_name: str                 # mas'ul shaxs ismi
-    last_name: str                  # mas'ul shaxs familiyasi
+    first_name: str
+    last_name: str
     email: str
     phone: str = ""
     company_name: str
-    license_number: str             # majburiy
+    license_number: str
     address: str
     logo: str | None = None
     license_image: str | None = None
 
 
-# ---------- Kompaniya: to'liq ko'rish (egasi/admin — litsenziya bilan) ----------
+
 class TourKompaniyaRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -286,7 +284,7 @@ class TourKompaniyaRead(BaseModel):
     created_at: datetime
 
 
-# ---------- Kompaniya: ommaviy ko'rish (GET — litsenziya rasmisiz) ----------
+
 class TourKompaniyaPublicRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -297,7 +295,7 @@ class TourKompaniyaPublicRead(BaseModel):
     status: str
 
 
-# ---------- Tur: yaratish (POST) ----------
+
 class TourCreate(BaseModel):
     title: str
     description: str = ""
@@ -305,10 +303,10 @@ class TourCreate(BaseModel):
     price: Decimal
     duration_days: int
     available_seats: int
-    images: list[str] = []          # galereya URL/yo'llari ro'yxati
+    images: list[str] = []
 
 
-# ---------- Tur: ommaviy ko'rish (GET) ----------
+
 class TourRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

@@ -10,7 +10,7 @@ router = APIRouter(prefix="/messages", tags=["chat"])
 
 @router.get("/")
 async def list_messages(
-    user: int | None = None,   # ?user=<id> — ma'lum bir suhbat, aks holda barchasi
+    user: int | None = None,
     limit: int = 50,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),

@@ -16,7 +16,7 @@ class RoutePoint(BaseModel):
 class POI(BaseModel):
     """Yo'l bo'yidagi joy — yoqilg'i shaxobcha yoki oshxona"""
     name: str
-    type: str  # "fuel" yoki "food"
+    type: str
     lat: float
     lng: float
 
@@ -24,6 +24,6 @@ class POI(BaseModel):
 class RouteResponse(BaseModel):
     distance_km: float
     duration_min: float
-    geometry: list[RoutePoint]   # marshrut chizig'i (xaritada chizish uchun)
+    geometry: list[RoutePoint]
     fuel_stops: list[POI]
     food_stops: list[POI]

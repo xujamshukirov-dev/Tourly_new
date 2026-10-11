@@ -7,7 +7,7 @@ from core.database import Base
 class Notification(Base):
     __tablename__ = "notifications"
     __table_args__ = (
-        # foydalanuvchining o'qilmagan bildirishnomalarini tez topish uchun
+
         Index("ix_notification_user_read", "user_id", "is_read"),
         Index("ix_notification_created", "created_at"),
     )

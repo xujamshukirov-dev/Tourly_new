@@ -63,10 +63,10 @@ async def search(
 
     uid = current_user.id if current_user else None
 
-    # Postlarni qidirish (caption bo'yicha)
+
     post_rows = await posts_crud.search_posts(db, q, uid)
 
-    # Guide, hotel, restoran qidirish
+
     guide_stmt = select(GuideVerification).where(
         GuideVerification.status == "approved",
         GuideVerification.first_name.icontains(q),

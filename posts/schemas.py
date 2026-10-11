@@ -11,7 +11,7 @@ class UserMini(BaseModel):
     avatar: str | None
 
 
-# ---------- Post ----------
+
 class PostCreate(BaseModel):
     media: str
     media_type: str
@@ -40,7 +40,7 @@ class PostRead(BaseModel):
     is_saved: bool = False
 
 
-# ---------- Comment ----------
+
 class CommentCreate(BaseModel):
     post_id: int
     comment: str = ""
@@ -56,6 +56,6 @@ class CommentRead(BaseModel):
     created_at: datetime
 
 
-# ---------- Like / Save (toggle javobi) ----------
+
 class ToggleResponse(BaseModel):
-    active: bool  # True = like/save qilindi, False = olib tashlandi
+    active: bool
